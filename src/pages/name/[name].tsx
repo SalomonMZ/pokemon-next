@@ -1,18 +1,17 @@
 import { pokeApi } from "@/api";
-import { GetStaticPaths } from "next";
 import { Layout } from "@/components/layouts";
-import { GetStaticProps, NextPage } from "next";
-import { Pokemon } from "@/interfaces";
-import { Button, Card, Container, Grid, Image, Text } from "@nextui-org/react";
-import confetti from "canvas-confetti";
+import { Pokemon, PokemonListResponse } from "@/interfaces";
 import { localFavorites } from "@/utils";
-import { useEffect, useState } from "react";
+import { Grid, Card, Button, Container, Text, Image } from "@nextui-org/react";
+import confetti from "canvas-confetti";
+import { GetStaticPaths, GetStaticProps } from "next";
+import { FC, useEffect, useState } from "react";
 
 interface Props {
   pokemon: Pokemon;
 }
 
-const PokemonDetailPage: NextPage<Props> = ({ pokemon }) => {
+const PokemonDetailsByNamePage: FC<Props> = ({ pokemon }) => {
   const [isFavorite, setIsFavorite] = useState(false);
 
   const onToggleFavorite = () => {
@@ -105,23 +104,26 @@ const PokemonDetailPage: NextPage<Props> = ({ pokemon }) => {
 };
 
 export const getStaticPaths: GetStaticPaths = async () => {
-  const pokemon151 = [...Array(151)].map((_, index) => `${index + 1}`);
+  const {
+    data: { results },
+  } = await pokeApi.get<PokemonListResponse>("/pokemon?limit=151");
+
+  const pokemonsName = results.map((pokemon) => pokemon.name);
+
   return {
-    paths: pokemon151.map((id) => ({ params: { id } })),
+    paths: pokemonsName.map((name) => ({ params: { name } })),
     fallback: false,
   };
 };
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {
-  const { id } = params as { id: string };
-
-  const { data: pokemon } = await pokeApi.get<Pokemon>(`/pokemon/${id}`);
-
+  const { name: pokemonName } = params as { name: string };
+  const pokemonInfo = await pokeApi.get<Pokemon>(`/pokemon/${pokemonName}`);
   return {
     props: {
-      pokemon,
+      pokemon: pokemonInfo.data,
     },
   };
 };
 
-export default PokemonDetailPage;
+export default PokemonDetailsByNamePage;
