@@ -1,7 +1,7 @@
 import { pokeApi } from "@/api";
 import { Layout } from "@/components/layouts";
 import { Pokemon, PokemonListResponse } from "@/interfaces";
-import { localFavorites } from "@/utils";
+import { getPokemonInfo, localFavorites } from "@/utils";
 import { Grid, Card, Button, Container, Text, Image } from "@nextui-org/react";
 import confetti from "canvas-confetti";
 import { GetStaticPaths, GetStaticProps } from "next";
@@ -11,7 +11,7 @@ interface Props {
   pokemon: Pokemon;
 }
 
-const PokemonDetailsByNamePage: FC<Props> = ({ pokemon }) => {
+const PokemonDetailsByNamePage: FC<Props> = ({ pokemon = {} as Pokemon }) => {
   const [isFavorite, setIsFavorite] = useState(false);
 
   const onToggleFavorite = () => {
@@ -117,11 +117,13 @@ export const getStaticPaths: GetStaticPaths = async () => {
 };
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {
-  const { name: pokemonName } = params as { name: string };
-  const pokemonInfo = await pokeApi.get<Pokemon>(`/pokemon/${pokemonName}`);
+  const { name } = params as { name: string };
+
+  const pokemon = await getPokemonInfo(name);
+
   return {
     props: {
-      pokemon: pokemonInfo.data,
+      pokemon,
     },
   };
 };

@@ -10,7 +10,7 @@ interface Props {
 export const PokemonCard: FC<Props> = ({ pokemon: { id, name, img } }) => {
   const router = useRouter();
   const onPokemonClick = () => {
-    router.push(`/pokemon/${id}`);
+    router.push(`/name/${name}`);
   };
 
   return (
